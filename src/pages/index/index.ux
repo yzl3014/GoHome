@@ -1,0 +1,151 @@
+<template>
+  <div class="page">
+    <!--顶栏-->
+    <div class="head">
+      <input type="button" value="退出" style="color: white" @click="quit" static />
+      <text style="position: absolute; left: 185px; top: 5px; color: #bbbbbb; font-size: 32px">
+        {{ timeNow }}
+      </text>
+      <text style="position: absolute; left: 165px; top: 41px; color: #bbbbbb; font-size: 32px" static>
+        GoHome
+      </text>
+      <input type="button" value="修改" style="position: absolute; right: 5px; color: white" @click="changeDate" static />
+    </div>
+    <!--页面内容-->
+    <div class="content">
+      <text>距离放假{{ BeforeOrAfter }}</text>
+
+      <!--时间显示-->
+      <div style="flex-direction: column; background-color: cadetblue; border-radius: 13px">
+        <text style="text-align: center; font-size: 90px; line-height: 95px">{{ countDown }}</text>
+        <text style="text-align: center; font-size: 23px" static>小时</text>
+      </div>
+    </div>
+    <div class="content">
+      <text static>目标日期</text>
+
+      <!--倒计时的目标时间-->
+      <div style="flex-direction: column; background-color: #242424; border-radius: 5px">
+        <text style="text-align: center; padding: 7px; font-size: 27px" @click="changeTargetTime">
+          {{ targetTime }}
+        </text>
+      </div>
+    </div>
+    <text style="font-size: 24px; color: #bbbbbb; position: absolute; bottom: 5px; left: 122px" static>
+      GitHub.com/yzl3014
+    </text>
+  </div>
+</template>
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+
+function fixLength(num) {
+  // 将数字0~9改为01~09，以符合样式
+  num = String(num)
+  if (num <= 9 && num >= 0) return "0" + num
+  else return num
+}
+export default {
+  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
+  private: {},
+  public: {
+    timeNow: "12:00", // 当前时间。显示在屏幕顶部
+    countDown: 0, // 时间差，单位为小时。
+    BeforeOrAfter: "", // 时间差的正负。为了显示“距离放假还有”或“距离放假已过”
+    targetTime: "2025-01-01T00:00:00",
+    timer: null // 定时器
+  },
+
+  computed: {
+    changeDate() {
+      // 修改日期需打开 change 页面
+      router.push({
+        uri: "/pages/change"
+      })
+    },
+    quit() {
+      // 退出应用
+      this.$app.exit()
+    }
+  },
+  updateCountdown() {
+    // 更新文字显示
+    if (this.targetTime == "2025-01-01T00:00:00") {
+      this.BeforeOrAfter = "还有"
+      this.countDown = "--"
+      return
+    }
+    const timeDiff = this.getTimeDiff()
+    if (timeDiff > 0) {
+      this.BeforeOrAfter = "还有"
+      this.countDown = timeDiff
+    } else {
+      this.BeforeOrAfter = "已过"
+      this.countDown = Math.abs(timeDiff) // 取绝对值，以符合文字提示
+    }
+  },
+  getTimeDiff() {
+    // 计算时间差
+    const now = new Date()
+    const target = new Date(this.targetTime)
+    const timeDiff = target - now
+    return (timeDiff / (1000 * 60 * 60)).toFixed(3) // 转换为小时，保留3位小数
+  },
+  onInit() {
+    storage.get({
+      key: "TargetTime",
+      default: "2025-12-01T00:00:00",
+      success: (data) => {
+        this.targetTime = data
+      },
+      fail: (code) => {
+        console.log(`本地数据获取失败： ${code}`)
+      }
+    })
+  },
+  onReady() {
+    console.log("应用已打开")
+    // 每3.6秒(0.001小时)更新一次
+    let date = new Date()
+    this.updateCountdown()
+    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+    this.timer = setInterval(() => {
+      date = new Date()
+      this.updateCountdown()
+      this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+    }, 3600)
+  },
+  onDestroy() {
+    if (this.timer) {
+      clearTimeout(this.timer)
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 480px;
+  padding: 12px;
+  color: #fff;
+  background-color: #000;
+  align-items: baseline;
+  flex-direction: column;
+}
+
+.head {
+  width: 100%;
+  height: 100px;
+  padding: 5px;
+}
+
+.content {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+}
+</style>

@@ -1,0 +1,183 @@
+<template>
+  <div class="page">
+    <!--顶栏-->
+    <div class="head">
+      <input type="button" value="返回" style="color: white" @click="quit" static />
+      <text style="position: absolute; left: 185px; top: 5px; color: #bbbbbb; font-size: 32px">
+        {{ timeNow }}
+      </text>
+      <text style="position: absolute; left: 165px; top: 41px; color: #bbbbbb; font-size: 32px" static>
+        设置日期
+      </text>
+      <input type="button" value="保存" style="position: absolute; right: 5px; color: white" @click="saveChange" static />
+    </div>
+    <!--提示文本-->
+    <text style="font-size: 26px; color: rgb(90, 130, 255)" static>
+      被点击的数据将自增1, 需手动保存
+    </text>
+    <!--日期设定-->
+    <div class="content" @click="dateClicked(0)">
+      <text static>年:</text>
+      <text>{{ setYear }}</text>
+    </div>
+    <div class="content" @click="dateClicked(1)">
+      <text static>月:</text>
+      <text>{{ setMonth }}</text>
+    </div>
+    <div class="content" @click="dateClicked(2)">
+      <text static>日:</text>
+      <text>{{ setDay }}</text>
+    </div>
+    <div class="content" @click="dateClicked(3)">
+      <text static>时:</text>
+      <text>{{ setHour }}</text>
+    </div>
+    <div class="content" @click="dateClicked(4)">
+      <text static>分:</text>
+      <text>{{ setMinute }}</text>
+    </div>
+    <!--显示格式化后的文本-->
+    <div style="width: 470px; flex-direction: column">
+      <text style="text-align: center; font-size: 23px">{{ result }}</text>
+    </div>
+  </div>
+</template>
+<script>
+let date = new Date()
+function fixLength(num) {
+  // 将数字0~9改为01~09，以符合样式
+  num = String(num)
+  if (num <= 9 && num >= 0) return "0" + num
+  else return num
+}
+function getDaysOfMonth(year, month) {
+  // 获取某月天数，可能是28(平年2月)，29(闰年2月)，30(小月)，31(大月)
+  let date1 = new Date(year, month, 0)
+  let days = date1.getDate()
+  return days
+}
+import router from "@system.router"
+import prompt from "@system.prompt"
+import storage from "@system.storage"
+export default {
+  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
+  private: {},
+  public: {
+    timeNow: "12:00",
+    setYear: 2025,
+    setMonth: date.getMonth() + 1,
+    setDay: date.getDate(),
+    setHour: 15,
+    setMinute: 30,
+    result: "2025-01-01T12:00:00",
+    timer: null // 更新页面顶部时间的定时器
+  },
+
+  computed: {
+    quit() {
+      // 返回
+      router.replace({
+        uri: "/pages/index"
+      })
+    }
+  },
+  saveChange() {
+    storage.set({
+      key: "TargetTime",
+      value: this.result,
+      success: () => {
+        prompt.showToast({message: "保存成功"})
+      },
+      fail: (code) => {
+        prompt.showToast({message: "失败：" + code})
+      }
+    })
+  },
+  dateClicked(id) {
+    switch (id) {
+      case 0:
+        if (this.setYear >= 2027) this.setYear = 2025
+        else this.setYear++
+        break
+      case 1:
+        if (this.setMonth >= 12) this.setMonth = 1
+        else this.setMonth++
+        break
+      case 2:
+        if (this.setDay >= getDaysOfMonth(this.setYear, this.setMonth)) this.setDay = 1
+        else this.setDay++
+        break
+      case 3:
+        if (this.setHour >= 23) this.setHour = 0
+        else this.setHour++
+        break
+      case 4:
+        if (this.setMinute >= 59) this.setMinute = 0
+        else this.setMinute++
+        break
+    }
+    this.result =
+      this.setYear +
+      "-" +
+      fixLength(this.setMonth) +
+      "-" +
+      fixLength(this.setDay) +
+      "T" +
+      fixLength(this.setHour) +
+      ":" +
+      fixLength(this.setMinute) +
+      ":00"
+  },
+  onReady() {
+    console.log("时间设置界面已打开")
+    // 更新顶栏时间
+    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+    this.timer = setInterval(() => {
+      date = new Date()
+      this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+    }, 60000)
+    this.result =
+      this.setYear +
+      "-" +
+      fixLength(this.setMonth) +
+      "-" +
+      fixLength(this.setDay) +
+      "T" +
+      fixLength(this.setHour) +
+      ":" +
+      fixLength(this.setMinute) +
+      ":00"
+  },
+  onDestroy() {
+    if (this.timer) {
+      clearTimeout(this.timer)
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  width: 480px;
+  padding: 12px;
+  color: #fff;
+  background-color: #000;
+  align-items: baseline;
+  flex-direction: column;
+}
+
+.head {
+  width: 100%;
+  height: 100px;
+  padding: 5px;
+}
+
+.content {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  flex-direction: row;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+}
+</style>

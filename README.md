@@ -9,7 +9,7 @@
 - aiot-toolkit: 2.0.3
 - vela SDK: emulator-0.1.0
 
-编写程序时所用的虚拟机：
+编写程序时所用的模拟器：
 
 - vela-watch-5.0 (屏幕尺寸336x480)
 - vela-pre-4.0 (屏幕尺寸336x480)
@@ -25,4 +25,9 @@
 
 ## 程序截图
 
-【待上传】
+![首页](https://github.com/user-attachments/assets/a236d87d-cc52-4c4a-bb57-439e3d5f6638)
+![日期修改](https://github.com/user-attachments/assets/98fbc394-7cf3-4a8d-a5eb-f7623d16ff87)
+
+左图：首页 | 右图：日期修改页
+
+运行在 vela-watch-5.0 模拟器上，屏幕尺寸 336x480

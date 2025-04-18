@@ -3,10 +3,24 @@
     <!--顶栏-->
     <div class="head">
       <input type="button" value="退出" style="color: white" @click="quit" static />
-      <text style="position: absolute; left: 185px; top: 5px; color: #bbbbbb; font-size: 32px">
+      <text style="
+          position: absolute;
+          left: 187px;
+          top: 5px;
+          color: #bbbbbb;
+          font-size: 32px;
+          font-weight: bold;
+        ">
         {{ timeNow }}
       </text>
-      <text style="position: absolute; left: 165px; top: 41px; color: #bbbbbb; font-size: 32px" static>
+      <text style="
+          position: absolute;
+          left: 164px;
+          top: 41px;
+          color: #999999;
+          font-weight: bold;
+          font-size: 32px;
+        " static id="title">
         GoHome
       </text>
       <input type="button" value="修改" style="position: absolute; right: 5px; color: white" @click="changeDate" static />
@@ -16,9 +30,19 @@
       <text>距离放假{{ BeforeOrAfter }}</text>
 
       <!--时间显示-->
-      <div style="flex-direction: column; background-color: cadetblue; border-radius: 13px">
-        <text style="text-align: center; font-size: 90px; line-height: 95px">{{ countDown }}</text>
-        <text style="text-align: center; font-size: 23px" static>小时</text>
+      <div style="
+          flex-direction: column;
+          padding-top: 10px;
+          padding-bottom: 10px;
+          background-color: #0050a0;
+          border-radius: 13px;
+        " @click="switchDisplayType">
+        <text style="text-align: center; font-size: {{size_countDown}}px; line-height: 95px;">
+          {{ countDown }}
+        </text>
+        <text style="text-align: center; font-size: 27px; font-weight: bold">
+          {{ displayType == 0 ? "小时" : "时:分:秒" }}
+        </text>
       </div>
     </div>
     <div class="content">
@@ -26,12 +50,12 @@
 
       <!--倒计时的目标时间-->
       <div style="flex-direction: column; background-color: #242424; border-radius: 5px">
-        <text style="text-align: center; padding: 7px; font-size: 27px" @click="changeTargetTime">
+        <text style="text-align: center; padding: 7px; font-size: 31px">
           {{ targetTime }}
         </text>
       </div>
     </div>
-    <text style="font-size: 24px; color: #bbbbbb; position: absolute; bottom: 5px; left: 122px" static>
+    <text style="font-size: 24px; color: #bbbbbb; position: absolute; bottom: 5px; left: 122px" @click="aboutApp">
       GitHub.com/yzl3014
     </text>
   </div>
@@ -39,6 +63,9 @@
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
+import prompt from "@system.prompt"
+import app from "@system.app"
+const appInfo = app.getInfo()
 
 function fixLength(num) {
   // 将数字0~9改为01~09，以符合样式
@@ -46,17 +73,36 @@ function fixLength(num) {
   if (num <= 9 && num >= 0) return "0" + num
   else return num
 }
+function hoursToHMS(hours) {
+  // 小时转时分秒
+  const totalSeconds = Math.round(hours * 3600) // 计算总秒数
+
+  // 分解为时、分、秒
+  const hh = Math.floor(totalSeconds / 3600)
+  const remainingSeconds = totalSeconds % 3600
+  const mm = Math.floor(remainingSeconds / 60)
+  const ss = remainingSeconds % 60
+
+  // 格式化为两位数
+  return [
+    hh.toString().padStart(2, "0"),
+    mm.toString().padStart(2, "0"),
+    ss.toString().padStart(2, "0")
+  ].join(":")
+}
+
 export default {
   // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
   private: {},
   public: {
     timeNow: "12:00", // 当前时间。显示在屏幕顶部
     countDown: 0, // 时间差，单位为小时。
-    BeforeOrAfter: "", // 时间差的正负。为了显示“距离放假还有”或“距离放假已过”
-    targetTime: "2025-01-01T00:00:00",
-    timer: null // 定时器
+    BeforeOrAfter: "还有", // 时间差的正负。为了显示“距离放假还有”或“距离放假已过”
+    targetTime: "2020-01-01T00:00:00",
+    timer: null, // 定时器
+    size_countDown: 90, // 倒计时数字的文字大小，默认90px
+    displayType: 0 // 倒计时数值显示类型。0为小时(默认)，1为时分秒。
   },
-
   computed: {
     changeDate() {
       // 修改日期需打开 change 页面
@@ -69,9 +115,16 @@ export default {
       this.$app.exit()
     }
   },
-  updateCountdown() {
+  timerTask() {
+    // 定时器的每次任务
+    let date = new Date()
+    this.update()
+    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+  },
+  update() {
     // 更新文字显示
-    if (this.targetTime == "2025-01-01T00:00:00") {
+    if (this.targetTime == "2020-01-01T00:00:00") {
+      // 在从本地获取到倒计时的目标时间前，显示占位符
       this.BeforeOrAfter = "还有"
       this.countDown = "--"
       return
@@ -79,47 +132,96 @@ export default {
     const timeDiff = this.getTimeDiff()
     if (timeDiff > 0) {
       this.BeforeOrAfter = "还有"
-      this.countDown = timeDiff
+      if (this.displayType == 0) {
+        this.countDown = timeDiff.slice(0, -1)
+      } else {
+        this.countDown = hoursToHMS(timeDiff)
+      }
     } else {
       this.BeforeOrAfter = "已过"
-      this.countDown = Math.abs(timeDiff) // 取绝对值，以符合文字提示
+      if (this.displayType == 0) {
+        this.countDown = Math.abs(timeDiff).slice(0, -1) // 取绝对值，以符合文字提示
+      } else {
+        this.countDown = hoursToHMS(Math.abs(timeDiff))
+      }
+    }
+    // 根据数值大小，缩放文本
+    console.log("倒计时(小时)", timeDiff)
+    if (this.displayType == 1) {
+      if (timeDiff < 100.0) this.size_countDown = 90
+      else if (timeDiff < 1000.0) this.size_countDown = 83
+      else this.size_countDown = 74
+    } else {
+      if (timeDiff < 100.0) this.size_countDown = 110
+      else if (timeDiff < 1000.0) this.size_countDown = 97
+      else this.size_countDown = 87
     }
   },
   getTimeDiff() {
-    // 计算时间差
+    // 计算时间差，返回值单位是小时
     const now = new Date()
     const target = new Date(this.targetTime)
     const timeDiff = target - now
-    return (timeDiff / (1000 * 60 * 60)).toFixed(3) // 转换为小时，保留3位小数
+    return (timeDiff / (1000 * 60 * 60)).toFixed(4)
   },
-  onInit() {
+  switchDisplayType() {
+    // 切换倒计时的时间显示类型。0为小时(默认)，1为时分秒
+    if (this.displayType == 0) this.displayType = 1
+    else this.displayType = 0
+    // 改变定时器的时间间隔，方法是删除后重新创建
+    clearInterval(this.timer)
+    console.log("倒计时时间展示类型", this.displayType)
+    if (this.displayType == 0) {
+      this.timer = setInterval(() => {
+        this.timerTask()
+      }, 3600) // 展示小时，3.6秒(0.001小时)更新一次
+    } else {
+      this.timer = setInterval(() => {
+        this.timerTask()
+      }, 1100) // 展示时分秒，1秒更新一次。
+    }
+    this.update()  // 立即更新一次，以快速查看切换后的倒计时
+  },
+  appInit() {
+    // 应用打开时初始化
+    let date = new Date()
+    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
     storage.get({
       key: "TargetTime",
-      default: "2025-12-01T00:00:00",
+      default: "2020-01-01T00:00:00",
       success: (data) => {
         this.targetTime = data
+        this.update()
+        console.info("时间获取成功", data)
       },
       fail: (code) => {
         console.log(`本地数据获取失败： ${code}`)
       }
     })
   },
+  onInit() {
+    this.appInit()
+  },
+  onShow() {
+    // 从时间修改页面切换回来的话，为了更新index页面的数据，重新执行appInit
+    this.appInit()
+  },
   onReady() {
-    console.log("应用已打开")
-    // 每3.6秒(0.001小时)更新一次
-    let date = new Date()
-    this.updateCountdown()
-    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+    this.update()
     this.timer = setInterval(() => {
-      date = new Date()
-      this.updateCountdown()
-      this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
+      this.timerTask()
     }, 3600)
   },
   onDestroy() {
     if (this.timer) {
       clearTimeout(this.timer)
     }
+  },
+  aboutApp() {
+    prompt.showToast({
+      message: "GoHome " + appInfo.versionName + "[" + appInfo.versionCode + "]",
+      duration: 3000
+    })
   }
 }
 </script>
@@ -129,7 +231,7 @@ export default {
   width: 480px;
   padding: 12px;
   color: #fff;
-  background-color: #000;
+  background-color: #000000;
   align-items: baseline;
   flex-direction: column;
 }

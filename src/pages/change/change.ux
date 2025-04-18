@@ -3,17 +3,31 @@
     <!--顶栏-->
     <div class="head">
       <input type="button" value="返回" style="color: white" @click="quit" static />
-      <text style="position: absolute; left: 185px; top: 5px; color: #bbbbbb; font-size: 32px">
+      <text style="
+          position: absolute;
+          left: 187px;
+          top: 5px;
+          color: #bbbbbb;
+          font-size: 32px;
+          font-weight: bold;
+        ">
         {{ timeNow }}
       </text>
-      <text style="position: absolute; left: 165px; top: 41px; color: #bbbbbb; font-size: 32px" static>
+      <text style="
+          position: absolute;
+          left: 166px;
+          top: 41px;
+          color: #bbbbbb;
+          font-size: 32px;
+          font-weight: bold;
+        " static>
         设置日期
       </text>
       <input type="button" value="保存" style="position: absolute; right: 5px; color: white" @click="saveChange" static />
     </div>
     <!--提示文本-->
-    <text style="font-size: 26px; color: rgb(90, 130, 255)" static>
-      被点击的数据将自增1, 需手动保存
+    <text style="width: 100%; font-size: 26px; color: rgb(255, 187, 0); text-align: center" static>
+      被点击的数据将自增1
     </text>
     <!--日期设定-->
     <div class="content" @click="dateClicked(0)">
@@ -38,7 +52,7 @@
     </div>
     <!--显示格式化后的文本-->
     <div style="width: 470px; flex-direction: column">
-      <text style="text-align: center; font-size: 23px">{{ result }}</text>
+      <text style="text-align: center; font-size: 27px">{{ result }}</text>
     </div>
   </div>
 </template>
@@ -64,21 +78,19 @@ export default {
   private: {},
   public: {
     timeNow: "12:00",
-    setYear: 2025,
+    setYear: date.getFullYear(),
     setMonth: date.getMonth() + 1,
     setDay: date.getDate(),
     setHour: 15,
     setMinute: 30,
-    result: "2025-01-01T12:00:00",
+    result: "2020-01-01T12:00:00",
     timer: null // 更新页面顶部时间的定时器
   },
 
   computed: {
     quit() {
       // 返回
-      router.replace({
-        uri: "/pages/index"
-      })
+      router.back()
     }
   },
   saveChange() {
@@ -96,7 +108,7 @@ export default {
   dateClicked(id) {
     switch (id) {
       case 0:
-        if (this.setYear >= 2027) this.setYear = 2025
+        if (this.setYear >= date.getFullYear() + 3) this.setYear = date.getFullYear()-2
         else this.setYear++
         break
       case 1:
@@ -128,14 +140,16 @@ export default {
       fixLength(this.setMinute) +
       ":00"
   },
-  onReady() {
-    console.log("时间设置界面已打开")
-    // 更新顶栏时间
+  onInit() {
     this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
     this.timer = setInterval(() => {
       date = new Date()
       this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
     }, 60000)
+  },
+  onReady() {
+    console.log("时间设置界面已打开")
+    // 更新顶栏时间
     this.result =
       this.setYear +
       "-" +

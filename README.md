@@ -25,9 +25,12 @@
 
 ## 程序截图
 
-![首页](https://github.com/user-attachments/assets/a236d87d-cc52-4c4a-bb57-439e3d5f6638)
+<!--v1.0.1版 ![首页](https://github.com/user-attachments/assets/a236d87d-cc52-4c4a-bb57-439e3d5f6638)-->
+![首页：小时](https://github.com/user-attachments/assets/36a0e0a5-0ffb-44ef-b961-c502a1a77be3)
+![首页：时分秒](https://github.com/user-attachments/assets/1c357fad-9be8-480d-a8df-c33b4186c92a)
 ![日期修改](https://github.com/user-attachments/assets/98fbc394-7cf3-4a8d-a5eb-f7623d16ff87)
 
-左图：首页 | 右图：日期修改页
+
+首页(小时) | 首页(时分秒) | 日期修改页
 
 运行在 vela-watch-5.0 模拟器上，屏幕尺寸 336x480

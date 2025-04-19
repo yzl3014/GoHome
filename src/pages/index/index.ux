@@ -144,22 +144,23 @@ export default {
     } else {
       this.BeforeOrAfter = "已过"
       if (this.displayType == 0) {
-        this.countDown = Math.abs(timeDiff).slice(0, -2) // 取绝对值，以符合文字提示
+        this.countDown = String(Math.abs(timeDiff)).slice(0, -2) // 取绝对值，以符合文字提示
       } else {
         this.countDown = hoursToHMS(Math.abs(timeDiff))
       }
     }
     // 根据数值大小，缩放文本
     console.log("倒计时(小时)", timeDiff)
+    let timeDiffAbs = Math.abs(timeDiff)
     if (this.displayType == 1) {
-      if (timeDiff < 100.0) this.size_countDown = 90
-      else if (timeDiff < 1000.0) this.size_countDown = 83
-      else if (timeDiff > 10000.0) this.size_countDown = 64
+      if (timeDiffAbs < 100.0) this.size_countDown = 90
+      else if (timeDiffAbs < 1000.0) this.size_countDown = 83
+      else if (timeDiffAbs > 10000.0) this.size_countDown = 64
       else this.size_countDown = 74
     } else {
-      if (timeDiff < 100.0) this.size_countDown = 110
-      else if (timeDiff < 1000.0) this.size_countDown = 97
-      else if (timeDiff > 10000.0) this.size_countDown = 72
+      if (timeDiffAbs < 100.0) this.size_countDown = 110
+      else if (timeDiffAbs < 1000.0) this.size_countDown = 97
+      else if (timeDiffAbs > 10000.0) this.size_countDown = 72
       else this.size_countDown = 87
     }
   },

@@ -55,7 +55,7 @@
       <text>{{ setMinute }}</text>
     </div>
     <!--显示格式化后的文本-->
-    <div style="width: 470px; flex-direction: column">
+    <div style="width: 100%; flex-direction: column">
       <text style="text-align: center; font-size: 27px">{{ result }}</text>
     </div>
   </div>
@@ -170,6 +170,9 @@ export default {
     if (this.timer) {
       clearTimeout(this.timer)
     }
+  },
+  onBackPress() {
+    // 用户右滑，返回
   }
 }
 </script>

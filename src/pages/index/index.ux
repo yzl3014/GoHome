@@ -24,7 +24,7 @@
           color: #999999;
           font-weight: bold;
           font-size: 32px;
-        " static id="title">
+        " static>
         GoHome
       </text>
       <input type="button" value="修改" style="position: absolute; right: 5px; color: white" @click="changeDate" static />
@@ -133,25 +133,25 @@ export default {
       this.countDown = "--"
       return
     }
-    const timeDiff = this.getTimeDiff()
+    const timeDiff = parseFloat(this.getTimeDiff())
     if (timeDiff > 0) {
       this.BeforeOrAfter = "还有"
       if (this.displayType == 0) {
-        this.countDown = timeDiff.slice(0, -2)
+        this.countDown = timeDiff.toFixed(3)
       } else {
         this.countDown = hoursToHMS(timeDiff)
       }
     } else {
       this.BeforeOrAfter = "已过"
       if (this.displayType == 0) {
-        this.countDown = String(Math.abs(timeDiff)).slice(0, -2) // 取绝对值，以符合文字提示
+        this.countDown = Math.abs(timeDiff).toFixed(3) // 取绝对值，以符合文字提示
       } else {
         this.countDown = hoursToHMS(Math.abs(timeDiff))
       }
     }
     // 根据数值大小，缩放文本
     console.log("倒计时(小时)", timeDiff)
-    let timeDiffAbs = Math.abs(timeDiff)
+    const timeDiffAbs = Math.abs(timeDiff)
     if (this.displayType == 1) {
       if (timeDiffAbs < 100.0) this.size_countDown = 90
       else if (timeDiffAbs < 1000.0) this.size_countDown = 83

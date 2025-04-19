@@ -5,7 +5,9 @@
       <input type="button" value="返回" style="color: white" @click="quit" static />
       <text style="
           position: absolute;
-          left: 187px;
+          width: 100px;
+          text-align: center;
+          left: 180px;
           top: 5px;
           color: #bbbbbb;
           font-size: 32px;
@@ -15,7 +17,9 @@
       </text>
       <text style="
           position: absolute;
-          left: 166px;
+          width: 180px;
+          text-align: center;
+          left: 140px;
           top: 41px;
           color: #bbbbbb;
           font-size: 32px;
@@ -108,7 +112,7 @@ export default {
   dateClicked(id) {
     switch (id) {
       case 0:
-        if (this.setYear >= date.getFullYear() + 3) this.setYear = date.getFullYear()-2
+        if (this.setYear >= date.getFullYear() + 3) this.setYear = date.getFullYear() - 2
         else this.setYear++
         break
       case 1:

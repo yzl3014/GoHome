@@ -5,7 +5,9 @@
       <input type="button" value="退出" style="color: white" @click="quit" static />
       <text style="
           position: absolute;
-          left: 187px;
+          width: 100px;
+          text-align: center;
+          left: 180px;
           top: 5px;
           color: #bbbbbb;
           font-size: 32px;
@@ -15,7 +17,9 @@
       </text>
       <text style="
           position: absolute;
-          left: 164px;
+          width: 180px;
+          text-align: center;
+          left: 140px;
           top: 41px;
           color: #999999;
           font-weight: bold;
@@ -133,14 +137,14 @@ export default {
     if (timeDiff > 0) {
       this.BeforeOrAfter = "还有"
       if (this.displayType == 0) {
-        this.countDown = timeDiff.slice(0, -1)
+        this.countDown = timeDiff.slice(0, -2)
       } else {
         this.countDown = hoursToHMS(timeDiff)
       }
     } else {
       this.BeforeOrAfter = "已过"
       if (this.displayType == 0) {
-        this.countDown = Math.abs(timeDiff).slice(0, -1) // 取绝对值，以符合文字提示
+        this.countDown = Math.abs(timeDiff).slice(0, -2) // 取绝对值，以符合文字提示
       } else {
         this.countDown = hoursToHMS(Math.abs(timeDiff))
       }
@@ -150,10 +154,12 @@ export default {
     if (this.displayType == 1) {
       if (timeDiff < 100.0) this.size_countDown = 90
       else if (timeDiff < 1000.0) this.size_countDown = 83
+      else if (timeDiff > 10000.0) this.size_countDown = 64
       else this.size_countDown = 74
     } else {
       if (timeDiff < 100.0) this.size_countDown = 110
       else if (timeDiff < 1000.0) this.size_countDown = 97
+      else if (timeDiff > 10000.0) this.size_countDown = 72
       else this.size_countDown = 87
     }
   },
@@ -162,7 +168,7 @@ export default {
     const now = new Date()
     const target = new Date(this.targetTime)
     const timeDiff = target - now
-    return (timeDiff / (1000 * 60 * 60)).toFixed(4)
+    return (timeDiff / (1000 * 60 * 60)).toFixed(5)
   },
   switchDisplayType() {
     // 切换倒计时的时间显示类型。0为小时(默认)，1为时分秒
@@ -178,9 +184,9 @@ export default {
     } else {
       this.timer = setInterval(() => {
         this.timerTask()
-      }, 1100) // 展示时分秒，1秒更新一次。
+      }, 1010) // 展示时分秒，1秒更新一次。
     }
-    this.update()  // 立即更新一次，以快速查看切换后的倒计时
+    this.update() // 立即更新一次，以快速查看切换后的倒计时
   },
   appInit() {
     // 应用打开时初始化

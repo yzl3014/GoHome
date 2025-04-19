@@ -34,3 +34,7 @@
 首页(小时) | 首页(时分秒) | 日期修改页
 
 运行在 vela-watch-5.0 模拟器上，屏幕尺寸 336x480
+
+## 图标
+
+https://icons8.com/icon/MHCXCl93QY9K/lazy

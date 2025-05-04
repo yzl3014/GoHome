@@ -46,14 +46,7 @@
       <text static>日:</text>
       <text>{{ setDay }}</text>
     </div>
-    <div class="content" @click="dateClicked(3)">
-      <text static>时:</text>
-      <text>{{ setHour }}</text>
-    </div>
-    <div class="content" @click="dateClicked(4)">
-      <text static>分:</text>
-      <text>{{ setMinute }}</text>
-    </div>
+    <picker class="picker" type="time" selected="15:30" onchange="onTimePickerChange"></picker>
     <!--显示格式化后的文本-->
     <div style="width: 100%; flex-direction: column">
       <text style="text-align: center; font-size: 27px">{{ result }}</text>
@@ -123,15 +116,22 @@ export default {
         if (this.setDay >= getDaysOfMonth(this.setYear, this.setMonth)) this.setDay = 1
         else this.setDay++
         break
-      case 3:
-        if (this.setHour >= 23) this.setHour = 0
-        else this.setHour++
-        break
-      case 4:
-        if (this.setMinute >= 59) this.setMinute = 0
-        else this.setMinute++
-        break
     }
+    this.result =
+      this.setYear +
+      "-" +
+      fixLength(this.setMonth) +
+      "-" +
+      fixLength(this.setDay) +
+      "T" +
+      fixLength(this.setHour) +
+      ":" +
+      fixLength(this.setMinute) +
+      ":00"
+  },
+  onTimePickerChange(e) {
+    this.setHour = e.hour
+    this.setMinute = e.minute
     this.result =
       this.setYear +
       "-" +
@@ -199,6 +199,17 @@ export default {
   margin-top: 5px;
   flex-direction: row;
   background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
+  border-radius: 20px;
+}
+
+.picker {
+  background-color: rgba(255, 255, 255, 0.2);
+  margin-top: 5px;
+  border-radius: 30px;
+  color: rgb(180, 180, 180);
+  font-size: 35x;
+  selected-color: rgb(255, 255, 255);
+  selected-background-color: #979797;
+  selected-font-size: 40px;
 }
 </style>

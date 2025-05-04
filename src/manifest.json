@@ -1,8 +1,8 @@
 {
   "package": "com.yzl3014.gohome",
   "name": "GoHome",
-  "versionName": "1.1.2",
-  "versionCode": 7,
+  "versionName": "1.1.3",
+  "versionCode": 8,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
   "deviceTypeList": [

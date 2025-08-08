@@ -1,40 +1,7 @@
-## 快速上手
+# GoHome
 
-### 1. 开发
+这是一个可以运行在 小米手环9 Pro 上的放假倒计时小程序。你可以通过这个程序，查看还有多长时间放假。在小程序中，你可以随时编辑放假时间，一键保存。
 
-```
-npm install
-npm run start
-```
+我们在2025年8月8日发布了2.0.1版本，如果您需要旧版本，请到release下载。
 
-### 2. 构建
-
-```
-npm run build
-npm run release
-```
-
-### 3. 调试
-
-```
-npm run watch
-```
-### 4. 代码规范化配置
-代码规范化可以帮助开发者在git commit前进行代码校验、格式化、commit信息校验
-
-使用前提：必须先关联git
-
-macOS or Linux
-```
-sh husky.sh
-```
-
-windows
-```
-./husky.sh
-```
-
-
-## 了解更多
-
-你可以通过我们的[官方文档](https://iot.mi.com/vela/quickapp)熟悉和了解快应用。
+请到米坛社区查看详情：https://www.bandbbs.cn/resources/2873

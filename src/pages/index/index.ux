@@ -1,260 +1,220 @@
 <template>
   <div class="page">
-    <!--顶栏-->
-    <div class="head">
-      <input type="button" value="退出" style="color: white" @click="quit" static />
-      <text style="
-          position: absolute;
-          width: 100px;
-          text-align: center;
-          left: 180px;
-          top: 5px;
-          color: #bbbbbb;
-          font-size: 32px;
-          font-weight: bold;
-        ">
-        {{ timeNow }}
-      </text>
-      <text style="
-          position: absolute;
-          width: 180px;
-          text-align: center;
-          left: 140px;
-          top: 41px;
-          color: #999999;
-          font-weight: bold;
-          font-size: 32px;
-        " static>
-        GoHome
-      </text>
-      <input type="button" value="修改" style="position: absolute; right: 5px; color: white" @click="changeDate" static />
-    </div>
-    <!--页面内容-->
-    <div class="content">
-      <text>距离放假{{ BeforeOrAfter }}</text>
-
-      <!--时间显示-->
-      <div style="
-          flex-direction: column;
-          padding-top: 10px;
-          padding-bottom: 10px;
-          background-color: #0050a0;
-          border-radius: 13px;
-        " @click="switchDisplayType">
-        <text style="text-align: center; font-size: {{size_countDown}}px; line-height: 95px;">
-          {{ countDown }}
-        </text>
-        <text style="text-align: center; font-size: 27px; font-weight: bold">
-          {{ displayType == 0 ? "小时" : "时:分:秒" }}
-        </text>
+    <image
+      src="../../common/back.png"
+      style="position: absolute; left: 6px; top: 6px; width: 72px; height: 72px"
+      @click="goBack()"
+    ></image>
+    <image
+      src="../../common/settings.png"
+      style="position: absolute; left: 258px; top: 6px; width: 72px; height: 72px"
+      @click="toSettings()"
+    ></image>
+    <text class="clock">{{ clock }}</text>
+    <text class="title">GoHome</text>
+    <div class="main">
+      <div class="card">
+        <text class="timer greenA">{{ timer1 }}</text>
+        <text class="prompt">天:时:分:秒</text>
+      </div>
+      <div class="card">
+        <text class="timer greenB">{{ timer2 }}</text>
+        <text class="prompt">小时</text>
       </div>
     </div>
-    <div class="content">
-      <text static>目标日期</text>
-
-      <!--倒计时的目标时间-->
-      <div style="flex-direction: column; background-color: #242424; border-radius: 5px">
-        <text style="text-align: center; padding: 7px; font-size: 31px">
-          {{ targetTime }}
-        </text>
-      </div>
-    </div>
-    <text style="font-size: 24px; color: #bbbbbb; position: absolute; bottom: 5px; left: 122px" @click="aboutApp">
-      GitHub.com/yzl3014
-    </text>
+    <text class="coders">@yzl3014 @无源流沙</text>
   </div>
 </template>
+
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
-import prompt from "@system.prompt"
-import app from "@system.app"
-const appInfo = app.getInfo()
 
-function fixLength(num) {
-  // 将数字0~9改为01~09，以符合样式
-  num = String(num)
-  if (num <= 9 && num >= 0) return "0" + num
-  else return num
-}
-function hoursToHMS(hours) {
-  // 小时转时分秒
-  const totalSeconds = Math.round(hours * 3600) // 计算总秒数
+function calculateTimeDifference(targetTimeStr) {
+  // 解析输入时间（北京时间），添加时区标记
+  const targetTime = new Date(targetTimeStr + "+08:00")
+  // 获取当前时间（系统自动处理时区）
+  const now = new Date()
 
-  // 分解为时、分、秒
-  const hh = Math.floor(totalSeconds / 3600)
-  const remainingSeconds = totalSeconds % 3600
-  const mm = Math.floor(remainingSeconds / 60)
-  const ss = remainingSeconds % 60
+  // 计算时间差（毫秒）
+  const diff = Math.abs(now - targetTime)
 
-  // 格式化为两位数
-  return [
-    hh.toString().padStart(2, "0"),
-    mm.toString().padStart(2, "0"),
-    ss.toString().padStart(2, "0")
-  ].join(":")
+  // 1. 计算并格式化天:时:分:秒
+  const totalSeconds = Math.floor(diff / 1000)
+  const days = Math.floor(totalSeconds / (3600 * 24))
+  const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const formattedTime = `${days}:${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+
+  // 2. 计算并格式化保留2位小数的小时数
+  const totalHours = diff / (1000 * 3600)
+  const formattedHours = totalHours.toFixed(3)
+
+  return [formattedTime, formattedHours]
 }
 
 export default {
-  // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
-  private: {},
-  public: {
-    timeNow: "12:00", // 当前时间。显示在屏幕顶部
-    countDown: 0, // 时间差，单位为小时。
-    BeforeOrAfter: "还有", // 时间差的正负。为了显示“距离放假还有”或“距离放假已过”
-    targetTime: "2020-01-01T00:00:00",
-    timer: null, // 定时器
-    size_countDown: 90, // 倒计时数字的文字大小，默认90px
-    displayType: 0 // 倒计时数值显示类型。0为小时(默认)，1为时分秒。
-  },
-  computed: {
-    changeDate() {
-      // 修改日期需打开 change 页面
-      router.push({
-        uri: "/pages/change"
-      })
-    },
-    quit() {
-      // 退出应用
-      this.$app.exit()
-    }
-  },
-  timerTask() {
-    // 定时器的每次任务
-    let date = new Date()
-    this.update()
-    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
-  },
-  update() {
-    // 更新文字显示
-    if (this.targetTime == "2020-01-01T00:00:00") {
-      // 在从本地获取到倒计时的目标时间前，显示占位符
-      this.BeforeOrAfter = "还有"
-      this.countDown = "--"
-      return
-    }
-    const timeDiff = parseFloat(this.getTimeDiff())
-    if (timeDiff > 0) {
-      this.BeforeOrAfter = "还有"
-      if (this.displayType == 0) {
-        this.countDown = timeDiff.toFixed(3)
-      } else {
-        this.countDown = hoursToHMS(timeDiff)
-      }
-    } else {
-      this.BeforeOrAfter = "已过"
-      if (this.displayType == 0) {
-        this.countDown = Math.abs(timeDiff).toFixed(3) // 取绝对值，以符合文字提示
-      } else {
-        this.countDown = hoursToHMS(Math.abs(timeDiff))
-      }
-    }
-    // 根据数值大小，缩放文本
-    console.log("倒计时(小时)", timeDiff)
-    const timeDiffAbs = Math.abs(timeDiff)
-    if (this.displayType == 1) {
-      if (timeDiffAbs < 100.0) this.size_countDown = 90
-      else if (timeDiffAbs < 1000.0) this.size_countDown = 83
-      else if (timeDiffAbs > 10000.0) this.size_countDown = 64
-      else this.size_countDown = 74
-    } else {
-      if (timeDiffAbs < 100.0) this.size_countDown = 110
-      else if (timeDiffAbs < 1000.0) this.size_countDown = 97
-      else if (timeDiffAbs > 10000.0) this.size_countDown = 72
-      else this.size_countDown = 87
-    }
-  },
-  getTimeDiff() {
-    // 计算时间差，返回值单位是小时
-    const now = new Date()
-    const target = new Date(this.targetTime)
-    const timeDiff = target - now
-    return (timeDiff / (1000 * 60 * 60)).toFixed(5)
-  },
-  switchDisplayType() {
-    // 切换倒计时的时间显示类型。0为小时(默认)，1为时分秒
-    if (this.displayType == 0) this.displayType = 1
-    else this.displayType = 0
-    // 改变定时器的时间间隔，方法是删除后重新创建
-    clearInterval(this.timer)
-    console.log("倒计时时间展示类型", this.displayType)
-    if (this.displayType == 0) {
-      this.timer = setInterval(() => {
-        this.timerTask()
-      }, 3600) // 展示小时，3.6秒(0.001小时)更新一次
-    } else {
-      this.timer = setInterval(() => {
-        this.timerTask()
-      }, 1010) // 展示时分秒，1秒更新一次。
-    }
-    this.update() // 立即更新一次，以快速查看切换后的倒计时
-  },
-  appInit() {
-    // 应用打开时初始化
-    let date = new Date()
-    this.timeNow = fixLength(date.getHours()) + ":" + fixLength(date.getMinutes())
-    storage.get({
-      key: "TargetTime",
-      default: "2020-01-01T00:00:00",
-      success: (data) => {
-        this.targetTime = data
-        this.update()
-        console.info("时间获取成功", data)
-      },
-      fail: (code) => {
-        console.log(`本地数据获取失败： ${code}`)
-      }
-    })
+  private: {
+    clock: "09:28",
+    targetTime: "2025-01-01T00:00:00",
+    timer1: "",  // 格式为"天:时:分:秒"
+    timer2: "",  // 小时，保留三位小数
+    interval: null,  // 更新倒计时的定时器
+    useDefaultTime: false  // 是否使用的是默认时间
   },
   onInit() {
-    this.appInit()
+    // 时钟
+    const now = new Date()
+    this.clock = `${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`
+    setInterval(() => {
+      const now = new Date()
+      this.clock = `${now.getHours().toString().padStart(2, "0")}:${now
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`
+    }, 1000)
   },
   onShow() {
-    // 从时间修改页面切换回来的话，为了更新index页面的数据，重新执行appInit
-    this.appInit()
-  },
-  onReady() {
+    // 用户有可能到设置里面修改了时间，因此页面加载时需要更新
     this.update()
-    this.timer = setInterval(() => {
-      this.timerTask()
-    }, 3600)
   },
-  onDestroy() {
-    if (this.timer) {
-      clearTimeout(this.timer)
-    }
-  },
-  aboutApp() {
-    prompt.showToast({
-      message: "GoHome " + appInfo.versionName + "[" + appInfo.versionCode + "]",
-      duration: 3000
+  update() {
+    clearInterval(this.interval)  // 清除现有定时器，防止重复运行
+    storage.get({
+      key: "TargetTime",
+      default: "2025-01-01T00:00:00",
+      success: (data) => {
+        this.useDefaultTime = data == "2025-01-01T00:00:00"
+        this.targetTime = data
+        console.info("时间获取成功", data)
+        let that = this
+        this.interval = setInterval(() => {
+          const timeDiff = calculateTimeDifference(that.targetTime)
+          that.timer1 = timeDiff[0]
+          that.timer2 = timeDiff[1]
+          console.log(timeDiff)
+        }, 1000)
+      },
+      fail: (data, code) => {
+        prompt.showToast({message: `本地数据获取失败(${code}):${data}`})
+      }
     })
+  },
+  toSettings() {
+    let target
+    if (this.useDefaultTime) {
+      target = new Date()
+    } else {
+      target = new Date(this.targetTime)
+    }
+    const hms =
+      target.getHours().toString().padStart(2, "0") +
+      ":" +
+      target.getMinutes().toString().padStart(2, "0")
+    router.push({
+      uri: "pages/settings",
+      params: {
+        clock: this.clock,
+        timepicker: hms  // picker甚至无法在onInit中修改，只能提前一步
+      }
+    })
+  },
+  goBack() {
+    router.back()
   }
 }
 </script>
 
 <style>
 .page {
-  width: 480px;
-  padding: 12px;
+  width: 336px;
+  height: 480px;
   color: #fff;
-  background-color: #000000;
-  align-items: baseline;
+  background-color: #000;
+  flex-direction: column;
+}
+.clock {
+  position: absolute;
+  left: 77px;
+  top: 7px;
+  width: 182px;
+  height: 34px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 33.6px;
+  color: rgb(154, 154, 154);
+  text-align: center;
+}
+.title {
+  position: absolute;
+  left: 77px;
+  top: 35px;
+  width: 182px;
+  height: 45px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 44.8px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+.main {
+  left: 6px;
+  top: 82px;
+  width: 324px;
+  height: 387px;
   flex-direction: column;
 }
 
-.head {
-  width: 100%;
-  height: 100px;
-  padding: 5px;
+.card {
+  flex-direction: column;
+  width: 324px;
+  min-height: 106px;
+  padding: 15px;
+  margin-bottom: 5px;
+  border-radius: 26px;
+  background-color: rgb(38, 38, 38);
 }
 
-.content {
-  width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  flex-direction: column;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
+.timer {
+  width: 294px;
+  height: 64px;
+  line-height: 63.65px;
+  text-align: center;
+}
+
+.greenA {
+  font-size: 43px;
+  color: rgb(165, 214, 63);
+}
+
+.greenB {
+  font-size: 48px;
+  color: rgb(67, 207, 124);
+}
+.prompt {
+  width: 294px;
+  height: 28px;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 21.22px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+.coders {
+  position: absolute;
+  left: 5px;
+  top: 445px;
+  width: 324px;
+  height: 32px;
+  font-size: 24px;
+  font-weight: 400;
+  color: rgb(255, 255, 255);
+  text-align: center;
 }
 </style>

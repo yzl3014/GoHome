@@ -1,37 +1,40 @@
-# GoHome
+## 快速上手
 
-这是一个可以运行在 小米手环9 Pro 上的放假倒计时小程序。你可以通过这个程序，查看还有多长时间放假。在小程序中，你可以随时编辑放假时间，一键保存。
+### 1. 开发
 
-## 环境
-本程序在小米提供的`AIoT IDE 1.6.0`软件中编写，所需程序的版本信息如下：
+```
+npm install
+npm run start
+```
 
-- NodeJS: 20.11.0
-- aiot-toolkit: 2.0.3
-- vela SDK: emulator-0.1.0
+### 2. 构建
 
-编写程序时所用的模拟器：
+```
+npm run build
+npm run release
+```
 
-- vela-watch-5.0 (屏幕尺寸336x480)
-- vela-pre-4.0 (屏幕尺寸336x480)
+### 3. 调试
 
-实机运行：
+```
+npm run watch
+```
+### 4. 代码规范化配置
+代码规范化可以帮助开发者在git commit前进行代码校验、格式化、commit信息校验
 
-- 设备：小米手环 9 Pro
-- 型号：M2401B1
-- 系统及版本：Xiaomi HyperOS 2.0
-- 软件版本：1.1.133
+使用前提：必须先关联git
 
-程序上传器使用的是[表盘自定义工具](https://www.bandbbs.cn/threads/9797/) v6.1.12
+macOS or Linux
+```
+sh husky.sh
+```
 
-## 程序截图
+windows
+```
+./husky.sh
+```
 
-<!--v1.0.1版 ![首页](https://github.com/user-attachments/assets/a236d87d-cc52-4c4a-bb57-439e3d5f6638)-->
-![首页：小时](https://github.com/user-attachments/assets/36a0e0a5-0ffb-44ef-b961-c502a1a77be3)
-![首页：时分秒](https://github.com/user-attachments/assets/1c357fad-9be8-480d-a8df-c33b4186c92a)
-![日期修改](https://github.com/user-attachments/assets/9161315d-ae1f-4fb5-8a6f-36c47c3958e4)
 
-首页(小时) | 首页(时分秒) | 日期修改页
+## 了解更多
 
-## 图标
-
-https://icons8.com/icon/MHCXCl93QY9K/lazy
+你可以通过我们的[官方文档](https://iot.mi.com/vela/quickapp)熟悉和了解快应用。

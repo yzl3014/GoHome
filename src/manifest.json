@@ -1,8 +1,8 @@
 {
   "package": "com.yzl3014.gohome",
   "name": "GoHome",
-  "versionName": "1.1.3",
-  "versionCode": 8,
+  "versionName": "2.0.1",
+  "versionCode": 201,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
   "deviceTypeList": [
@@ -13,15 +13,15 @@
       "name": "system.router"
     },
     {
-      "name": "system.prompt"
+      "name": "system.storage"
     },
     {
-      "name": "system.storage"
+      "name": "system.prompt"
     }
   ],
   "config": {
     "logLevel": "log",
-    "designWidth": 480
+    "designWidth": "device-width"
   },
   "router": {
     "entry": "pages/index",
@@ -29,8 +29,8 @@
       "pages/index": {
         "component": "index"
       },
-      "pages/change": {
-        "component": "change"
+      "pages/settings": {
+        "component": "settings"
       }
     }
   }

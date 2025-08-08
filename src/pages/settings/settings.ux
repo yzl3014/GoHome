@@ -1,0 +1,275 @@
+<template>
+  <div class="page">
+    <!--顶栏-->
+    <image
+      src="../../common/back.png"
+      style="position: absolute; left: 6px; top: 6px; width: 72px; height: 72px"
+      @click="goBack()"
+    ></image>
+    <image
+      src="../../common/save.png"
+      style="position: absolute; left: 258px; top: 6px; width: 72px; height: 72px"
+      @click="save()"
+    ></image>
+    <text class="clock">{{ clock }}</text>
+    <text class="title">日期设置</text>
+    <div class="main">
+      <div>
+        <!--左侧修改日期-->
+        <div style="flex-direction: column; margin-right: 5px">
+          <div
+            class="dateBox {{ selectedId==0?'selectedBox':'notSelected' }}"
+            @click="onBoxClick(0)"
+          >
+            <text class="dateBoxText">{{ year }}</text>
+          </div>
+          <div
+            class="dateBox {{ selectedId==1?'selectedBox':'notSelected' }}"
+            @click="onBoxClick(1)"
+          >
+            <text class="dateBoxText">{{ month }}</text>
+          </div>
+          <div
+            class="dateBox {{ selectedId==2?'selectedBox':'notSelected' }}"
+            @click="onBoxClick(2)"
+          >
+            <text class="dateBoxText">{{ day }}</text>
+          </div>
+        </div>
+        <!--右侧修改时分-->
+        <div style="text-align: center; flex-direction: column">
+          <picker
+            class="picker"
+            type="time"
+            selected="{{ timepicker }}"
+            onchange="onTimePickerChange"
+          ></picker>
+        </div>
+      </div>
+      <!--时分增减-->
+      <div>
+        <div class="controllerBox" @click="onEdit(1)"><text class="ctrlBoxText">+</text></div>
+        <div class="controllerBox" @click="onEdit(-1)"><text class="ctrlBoxText">-</text></div>
+      </div>
+      <text style="font-size: 22px; text-align: center">{{ formatted }}</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+import prompt from "@system.prompt"
+
+function getDaysInMonth(year, month) {
+  // 月份从0开始（0=1月，11=12月），注意调整输入月份为0基
+  return new Date(year, month, 0).getDate()
+}
+
+export default {
+  public: {
+    clock: "09:28",
+    timepicker: "00:00"
+  },
+  private: {
+    year: 2025,
+    month: 8,
+    day: 8,
+    hms: "12:00:00", // 时分秒 Hours Minutes Seconds
+    selectedId: 2,
+    formatted: "" // 格式化后的日期
+  },
+  onBoxClick(id) {
+    this.selectedId = id
+  },
+  onEdit(num) {
+    switch (this.selectedId) {
+      case 0:
+        if (this.year + num > 2100 || this.year + num < 2000) break
+        this.year += num
+        break
+      case 1:
+        if (this.month + num > 12 || this.month + num < 1) break
+        this.month += num
+        // 如果上次设定的月份有31天，现在月份改变了，则天数可能会溢出
+        const daysInMonth = getDaysInMonth(this.year, this.month)
+        if (this.day > daysInMonth) {
+          this.day = daysInMonth
+        }
+        break
+      case 2:
+        if (this.day + num > getDaysInMonth(this.year, this.month) || this.day + num < 1) break
+        this.day += num
+        break
+    }
+    this.format()
+  },
+  onTimePickerChange(e) {
+    this.hms =
+      e.hour.toString().padStart(2, "0") + ":" + e.minute.toString().padStart(2, "0") + ":00"
+    this.format()
+  },
+  format() {
+    // 将时间格式化为类似"2025-01-01T12:34:56"的格式
+    this.formatted =
+      this.year.toString() +
+      "-" +
+      this.month.toString().padStart(2, "0") +
+      "-" +
+      this.day.toString().padStart(2, "0") +
+      "T" +
+      this.hms
+  },
+  onInit() {
+    // 时钟
+    const now = new Date()
+    this.clock = `${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`
+    setInterval(() => {
+      const now = new Date()
+      this.clock = `${now.getHours().toString().padStart(2, "0")}:${now
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`
+    }, 1000)
+
+    // 从本地获取
+    storage.get({
+      key: "TargetTime",
+      default: "",
+      success: (data) => {
+        // 如果本地没有数据，则使用现在时间
+        let d
+        if (!data) {
+          d = new Date()
+        } else {
+          d = new Date(data + "+08:00")
+        }
+        // 赋值到变量以展示
+        this.year = d.getFullYear()
+        this.month = d.getMonth() + 1
+        this.day = d.getDate()
+        this.hms =
+          d.getHours().toString().padStart(2, "0") +
+          ":" +
+          d.getMinutes().toString().padStart(2, "0") +
+          ":00"
+        this.format()
+      },
+      fail: (data, code) => {
+        prompt.showToast({message: `本地数据获取失败(${code}):${data}`})
+      }
+    })
+  },
+  save() {
+    this.format()
+    storage.set({
+      key: "TargetTime",
+      value: this.formatted,
+      success: () => {
+        prompt.showToast({message: `保存成功!`})
+      },
+      fail: (data, code) => {
+        prompt.showToast({message: `保存失败(${code}):${data}`})
+      }
+    })
+  },
+  goBack() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+/* 页面 */
+.page {
+  width: 336px;
+  height: 480px;
+  color: #fff;
+  background-color: #000;
+  flex-direction: column;
+}
+.clock {
+  position: absolute;
+  left: 77px;
+  top: 7px;
+  width: 182px;
+  height: 34px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 33.6px;
+  color: rgb(154, 154, 154);
+  text-align: center;
+}
+.title {
+  position: absolute;
+  left: 77px;
+  top: 35px;
+  width: 182px;
+  height: 45px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 44.8px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+}
+.main {
+  left: 6px;
+  top: 82px;
+  width: 324px;
+  height: 387px;
+  flex-direction: column;
+}
+
+/* 时间选择器 */
+.picker {
+  width: 205px;
+  height: 201px;
+  color: #4e4e4e;
+  font-size: 36px;
+  selected-font-size: 42px;
+  selected-color: #fff;
+
+  margin-bottom: 5px;
+  border-radius: 26px;
+  background-color: rgb(38, 38, 38);
+}
+
+/* 左侧的日期窗格 */
+.dateBox {
+  height: 64px;
+  width: 114px;
+  padding: 5px;
+  margin-bottom: 3px;
+  border-radius: 21px;
+  background-color: rgb(38, 38, 38);
+}
+.dateBoxText {
+  font-size: 32px;
+  width: 100%;
+  text-align: center;
+}
+.selectedBox {
+  border-width: 3px;
+  border-color: rgb(201, 62, 62);
+}
+.notSelected {
+  border-width: 0px;
+}
+
+/* 下方的加减控制按钮 */
+.controllerBox {
+  height: 80px;
+  padding: 5px;
+  margin: 1px;
+  border-radius: 21px;
+  background-color: rgb(48, 48, 48);
+}
+.ctrlBoxText {
+  font-size: 48px;
+  width: 100%;
+  text-align: center;
+}
+</style>

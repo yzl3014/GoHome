@@ -1,5 +1,8 @@
 <script>
 export default {
+  data: {
+    editDate: false
+  },
   onCreate() {
     console.log("app created")
   },

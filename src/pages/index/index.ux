@@ -60,10 +60,10 @@ export default {
   private: {
     clock: "09:28",
     targetTime: "2025-01-01T00:00:00",
-    timer1: "",  // 格式为"天:时:分:秒"
-    timer2: "",  // 小时，保留三位小数
-    interval: null,  // 更新倒计时的定时器
-    useDefaultTime: false  // 是否使用的是默认时间
+    timer1: "", // 格式为"天:时:分:秒"
+    timer2: "", // 小时，保留三位小数
+    interval: null, // 更新倒计时的定时器
+    useDefaultTime: false // 是否使用的是默认时间
   },
   onInit() {
     // 时钟
@@ -79,13 +79,18 @@ export default {
         .toString()
         .padStart(2, "0")}`
     }, 1000)
+
+    this.update()
   },
   onShow() {
     // 用户有可能到设置里面修改了时间，因此页面加载时需要更新
-    this.update()
+    if (this.$app.$def.data.editDate) {
+      this.update()
+      this.$app.$def.data.editDate = false
+    }
   },
   update() {
-    clearInterval(this.interval)  // 清除现有定时器，防止重复运行
+    clearInterval(this.interval) // 清除现有定时器，防止重复运行
     storage.get({
       key: "TargetTime",
       default: "2025-01-01T00:00:00",
@@ -94,6 +99,11 @@ export default {
         this.targetTime = data
         console.info("时间获取成功", data)
         let that = this
+
+        // 获取到时间后立即更新
+        const timeDiff = calculateTimeDifference(that.targetTime)
+        that.timer1 = timeDiff[0]
+        that.timer2 = timeDiff[1]
         this.interval = setInterval(() => {
           const timeDiff = calculateTimeDifference(that.targetTime)
           that.timer1 = timeDiff[0]
@@ -121,7 +131,7 @@ export default {
       uri: "pages/settings",
       params: {
         clock: this.clock,
-        timepicker: hms  // picker甚至无法在onInit中修改，只能提前一步
+        timepicker: hms // picker甚至无法在onInit中修改，只能提前一步
       }
     })
   },
@@ -131,46 +141,10 @@ export default {
 }
 </script>
 
+<style lang="less">
+@import "../../common/standard.less";
+</style>
 <style>
-.page {
-  width: 336px;
-  height: 480px;
-  color: #fff;
-  background-color: #000;
-  flex-direction: column;
-}
-.clock {
-  position: absolute;
-  left: 77px;
-  top: 7px;
-  width: 182px;
-  height: 34px;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 33.6px;
-  color: rgb(154, 154, 154);
-  text-align: center;
-}
-.title {
-  position: absolute;
-  left: 77px;
-  top: 35px;
-  width: 182px;
-  height: 45px;
-  font-size: 32px;
-  font-weight: 500;
-  line-height: 44.8px;
-  color: rgb(255, 255, 255);
-  text-align: center;
-}
-.main {
-  left: 6px;
-  top: 82px;
-  width: 324px;
-  height: 387px;
-  flex-direction: column;
-}
-
 .card {
   flex-direction: column;
   width: 324px;

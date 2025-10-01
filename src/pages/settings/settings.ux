@@ -175,6 +175,7 @@ export default {
         prompt.showToast({message: `保存失败(${code}):${data}`})
       }
     })
+    this.$app.$def.data.editDate = true
   },
   goBack() {
     router.back()
@@ -182,47 +183,10 @@ export default {
 }
 </script>
 
+<style lang="less">
+@import "../../common/standard.less";
+</style>
 <style>
-/* 页面 */
-.page {
-  width: 336px;
-  height: 480px;
-  color: #fff;
-  background-color: #000;
-  flex-direction: column;
-}
-.clock {
-  position: absolute;
-  left: 77px;
-  top: 7px;
-  width: 182px;
-  height: 34px;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 33.6px;
-  color: rgb(154, 154, 154);
-  text-align: center;
-}
-.title {
-  position: absolute;
-  left: 77px;
-  top: 35px;
-  width: 182px;
-  height: 45px;
-  font-size: 32px;
-  font-weight: 500;
-  line-height: 44.8px;
-  color: rgb(255, 255, 255);
-  text-align: center;
-}
-.main {
-  left: 6px;
-  top: 82px;
-  width: 324px;
-  height: 387px;
-  flex-direction: column;
-}
-
 /* 时间选择器 */
 .picker {
   width: 205px;
